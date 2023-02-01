@@ -8,14 +8,41 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var post: Post? = nil
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        if let post = post {
+            NavigationView {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        Text(post.title)
+                            .font(.system(.largeTitle, design: .serif))
+                            .bold()
+                            .padding(.bottom, 10)
+                        
+                        ForEach(0..<post.content.count, id: \.self) { index in
+                            Text(post.content[index])
+                                .font(.system(.body, design: .serif))
+                                .padding(.bottom, 10)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .textSelection(.enabled)
+            
+        } else {
+            ProgressView()
+                .progressViewStyle(.circular)
+                .task {
+                    do {
+                        self.post = try await WordpressService().fetchContent()
+                    } catch {
+                        fatalError(error.localizedDescription)
+                    }
+                }
         }
-        .padding()
     }
 }
 
